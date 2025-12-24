@@ -28,7 +28,7 @@ const ProductDescription = ({ product }) => {
             {/* Reviews */}
             {selectedTab === "Reviews" && (
                 <div className="flex flex-col gap-3 mt-14">
-                    {product.rating.map((item,index) => (
+                    {/* {product.rating.map((item,index) => (
                         <div key={index} className="flex gap-5 mb-10">
                             <Image src={item.user.image} alt="" className="size-10 rounded-full" width={100} height={100} />
                             <div>
@@ -42,16 +42,16 @@ const ProductDescription = ({ product }) => {
                                 <p className="mt-3 font-light">{new Date(item.createdAt).toDateString()}</p>
                             </div>
                         </div>
-                    ))}
+                    ))} */}
                 </div>
             )}
 
             {/* Store Page */}
             <div className="flex gap-3 mt-14">
-                <Image src={product.store.logo} alt="" className="size-11 rounded-full ring ring-slate-400" width={100} height={100} />
+                <Image src={product.image} alt="" className="size-11 rounded-full ring ring-slate-400" width={100} height={100} />
                 <div>
-                    <p className="font-medium text-slate-600">Product by {product.store.name}</p>
-                    <Link href={`/shop/${product.store.username}`} className="flex items-center gap-1.5 text-green-500"> view store <ArrowRight size={14} /></Link>
+                    <p className="font-medium text-slate-600">Product by {product.name}</p>
+                    <Link href={`/shop/${product.name}`} className="flex items-center gap-1.5 text-green-500"> view store <ArrowRight size={14} /></Link>
                 </div>
             </div>
         </div>

@@ -38,7 +38,7 @@ export default function StoreManageProducts() {
                         <th className="px-4 py-3">Name</th>
                         <th className="px-4 py-3 hidden md:table-cell">Description</th>
                         <th className="px-4 py-3 hidden md:table-cell">MRP</th>
-                        <th className="px-4 py-3">Price</th>
+                        <th className="px-4 py-3">stock</th>
                         <th className="px-4 py-3">Actions</th>
                     </tr>
                 </thead>

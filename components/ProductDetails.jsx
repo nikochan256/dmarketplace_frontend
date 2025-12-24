@@ -18,26 +18,66 @@ const ProductDetails = ({ product }) => {
 
     const router = useRouter()
 
-    const [mainImage, setMainImage] = useState(product.images[0]);
+    const [mainImage, setMainImage] = useState(product.image);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-    const addToCartHandler = () => {
-        dispatch(addToCart({ productId }))
+    const addToCartHandler = async () => {
+        try {
+            // Check if user is logged in
+            const userId = localStorage.getItem('dmarketplaceUserId');
+            
+            if (!userId) {
+                // User not logged in - prompt to login
+                alert('Please login to add items to cart');
+                return;
+            }
+
+            setIsAddingToCart(true);
+
+            // Make API call to add to cart
+            const response = await fetch('https://dmarketplacebackend.vercel.app/user/add_to_cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: parseInt(userId),
+                    productId: parseInt(productId)
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add to cart');
+            }
+
+            const result = await response.json();
+            console.log(result.msg);
+
+            // Also update Redux state for UI
+            dispatch(addToCart({ productId }));
+
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            alert('Failed to add item to cart. Please try again.');
+        } finally {
+            setIsAddingToCart(false);
+        }
     }
 
-    const averageRating = product.rating.reduce((acc, item) => acc + item.rating, 0) / product.rating.length;
+    const averageRating = 5;
     
     return (
         <div className="flex max-lg:flex-col gap-12">
             <div className="flex max-sm:flex-col-reverse gap-3">
                 <div className="flex sm:flex-col gap-3">
-                    {product.images.map((image, index) => (
-                        <div key={index} onClick={() => setMainImage(product.images[index])} className="bg-slate-100 flex items-center justify-center size-26 rounded-lg group cursor-pointer">
+                    {/* {product.image.map((image, index) => (
+                        <div key={index} onClick={() => setMainImage(product.image)} className="bg-slate-100 flex items-center justify-center size-26 rounded-lg group cursor-pointer">
                             <Image src={image} className="group-hover:scale-103 group-active:scale-95 transition" alt="" width={45} height={45} />
                         </div>
-                    ))}
+                    ))} */}
                 </div>
                 <div className="flex justify-center items-center h-100 sm:size-113 bg-slate-100 rounded-lg ">
-                    <Image src={mainImage} alt="" width={250} height={250} />
+                    <Image className="w-full h-full object-cover" src={mainImage} alt="no image" width={100} height={100} />
                 </div>
             </div>
             <div className="flex-1">
@@ -46,15 +86,14 @@ const ProductDetails = ({ product }) => {
                     {Array(5).fill('').map((_, index) => (
                         <StarIcon key={index} size={14} className='text-transparent mt-0.5' fill={averageRating >= index + 1 ? "#00C950" : "#D1D5DB"} />
                     ))}
-                    <p className="text-sm ml-3 text-slate-500">{product.rating.length} Reviews</p>
+                    <p className="text-sm ml-3 text-slate-500"> Reviews</p>
                 </div>
                 <div className="flex items-start my-6 gap-3 text-2xl font-semibold text-slate-800">
                     <p> {currency}{product.price} </p>
-                    <p className="text-xl text-slate-500 line-through">{currency}{product.mrp}</p>
+                    <p className="text-xl text-slate-500 line-through">{currency}{product.price}</p>
                 </div>
                 <div className="flex items-center gap-2 text-slate-500">
                     <TagIcon size={14} />
-                    <p>Save {((product.mrp - product.price) / product.mrp * 100).toFixed(0)}% right now</p>
                 </div>
                 <div className="flex items-end gap-5 mt-10">
                     {
@@ -65,9 +104,6 @@ const ProductDetails = ({ product }) => {
                             </div>
                         )
                     }
-                    <button onClick={() => !cart[productId] ? addToCartHandler() : router.push('/cart')} className="bg-slate-800 text-white px-10 py-3 text-sm font-medium rounded hover:bg-slate-900 active:scale-95 transition">
-                        {!cart[productId] ? 'Add to Cart' : 'View Cart'}
-                    </button>
                 </div>
                 <hr className="border-gray-300 my-5" />
                 <div className="flex flex-col gap-4 text-slate-500">
