@@ -9,16 +9,14 @@ import {
   Truck,
   ShieldCheck,
   X,
+  LogIn,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Product() {
-    const router = useRouter();
+  const router = useRouter();
   const params = useParams();
 
-  const paramsArray = Array.isArray(params.productId)
-    ? params.productId
-    : [params.productId];
   const storeId = params.store_id;
   const productId = params.productId;
 
@@ -29,11 +27,29 @@ export default function Product() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCartPopup, setShowCartPopup] = useState(false);
+  const [similarProducts, setSimilarProducts] = useState([]);
+const [similarProductsLoading, setSimilarProductsLoading] = useState(false);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [addingToCart, setAddingToCart] = useState(false);
   const [btcRate, setBtcRate] = useState(null);
   const [btcLoading, setBtcLoading] = useState(true);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [recentlyViewedLoading, setRecentlyViewedLoading] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  // Check authentication on mount
+  useEffect(() => {
+    const userId = localStorage.getItem("dmarketplaceUserId");
+    if (!userId) {
+      setShowLoginPrompt(true);
+      // Redirect after 3 seconds if not logged in
+      const timer = setTimeout(() => {
+        router.push("/shop");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [router]);
 
   // Fetch BTC price from API
   const fetchBtcRate = async () => {
@@ -75,6 +91,121 @@ export default function Product() {
     return `₿${convertToBtc(eurAmount)}`;
   };
 
+  // Add product to recently viewed
+  const addToRecentlyViewed = async (productData, variantData) => {
+    try {
+      const userId = localStorage.getItem("dmarketplaceUserId");
+      if (!userId) return;
+
+      const productImg =
+        variantData.files.find((f) => f.type === "preview")?.preview_url ||
+        productData.sync_product.thumbnail_url;
+
+      const response = await fetch(
+        "https://dmarketplacebackend.vercel.app/merchant/add-recently-viewed",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: userId,
+            productId: productId,
+            storeId: storeId,
+            productName: productData.sync_product.name,
+            productImg: productImg,
+            productPrice: variantData.retail_price,
+            variantId: String(variantData.id), // Convert to string
+          }),
+        }
+      );
+
+      if (response.ok) {
+        console.log("✅ Added to recently viewed");
+        // Fetch updated recently viewed list
+        fetchRecentlyViewed();
+      }
+    } catch (err) {
+      console.error("Error adding to recently viewed:", err);
+    }
+  };
+
+  // Fetch recently viewed products
+  const fetchRecentlyViewed = async () => {
+    try {
+      const userId = localStorage.getItem("dmarketplaceUserId");
+      if (!userId) return;
+
+      setRecentlyViewedLoading(true);
+      const response = await fetch(
+        `https://dmarketplacebackend.vercel.app/merchant/recently-viewed/${userId}?limit=8`
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        // Filter out the current product from recently viewed
+        const filtered = result.data.filter(
+          (item) =>
+            !(
+              item.productId === parseInt(productId) &&
+              item.storeId === parseInt(storeId)
+            )
+        );
+        setRecentlyViewed(filtered);
+      }
+    } catch (err) {
+      console.error("Error fetching recently viewed:", err);
+    } finally {
+      setRecentlyViewedLoading(false);
+    }
+  };
+
+  // Fetch similar products
+  const fetchSimilarProducts = async () => {
+    try {
+      setSimilarProductsLoading(true);
+      const response = await fetch(
+        `https://dmarketplacebackend.vercel.app/merchant/all-merchants-products`
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        const allProducts = [];
+        result.data.forEach(merchantData => {
+          if (merchantData.products && Array.isArray(merchantData.products)) {
+            merchantData.products.forEach(product => {
+              allProducts.push({
+                id: product.id,
+                name: product.name,
+                thumbnail_url: product.thumbnail_url,
+                variants: product.variants,
+                synced: product.synced,
+                merchantInfo: merchantData.merchant
+              });
+            });
+          }
+        });
+
+        // Filter out the current product and shuffle
+        const filtered = allProducts.filter(
+          item => !(item.id === parseInt(productId))
+        );
+
+        // Shuffle and get random products
+        const shuffled = filtered.sort(() => 0.5 - Math.random());
+        setSimilarProducts(shuffled.slice(0, 8));
+      }
+    } catch (err) {
+      console.error("Error fetching similar products:", err);
+    } finally {
+      setSimilarProductsLoading(false);
+    }
+  };
+
+// Get product price for similar products
+
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -102,19 +233,27 @@ export default function Product() {
           setSelectedImage(
             previewImage?.preview_url || result.data.sync_product.thumbnail_url
           );
+
+          // Set loading to false immediately after product data is set
+          setLoading(false);
+
+          // Add to recently viewed in background (non-blocking)
+          addToRecentlyViewed(result.data, firstVariant);
+        } else {
+          setLoading(false);
         }
       } catch (err) {
         setError(err.message);
         console.error("Error fetching product:", err);
-      } finally {
         setLoading(false);
       }
     };
 
     if (storeId && productId) {
       fetchProduct();
+      fetchRecentlyViewed();
+      fetchSimilarProducts(); // Add this line
     }
-
     scrollTo(0, 0);
   }, [storeId, productId]);
 
@@ -231,6 +370,34 @@ export default function Product() {
 
   const uniqueColors = [...new Set(product?.sync_variants.map((v) => v.color))];
   const uniqueSizes = [...new Set(product?.sync_variants.map((v) => v.size))];
+
+  // Login Prompt Modal
+  if (showLoginPrompt) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl text-center animate-in fade-in zoom-in duration-200">
+          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <LogIn className="w-8 h-8 text-orange-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">
+            Login Required
+          </h2>
+          <p className="text-slate-600 mb-6">
+            Please log in to view product details and make purchases.
+          </p>
+          <p className="text-sm text-slate-500 mb-6">
+            Redirecting to shop in 3 seconds...
+          </p>
+          <button
+            onClick={() => router.push("/shop")}
+            className="w-full bg-slate-900 text-white py-3 rounded-xl font-semibold hover:bg-slate-800 transition-colors"
+          >
+            Go to Shop Now
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -507,68 +674,123 @@ export default function Product() {
           </div>
         </div>
 
-        {/* All Variants Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">
-            Available Variants
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {product.sync_variants.slice(0, 4).map((variant) => (
-              <div
-                key={variant.id}
-                onClick={() => handleVariantChange(variant)}
-                className={`cursor-pointer rounded-xl border-2 p-5 transition-all hover:shadow-md ${
-                  selectedVariant?.id === variant.id
-                    ? "border-slate-900 bg-slate-50"
-                    : "border-slate-200 bg-white hover:border-slate-400"
-                }`}
-              >
-                <div className="relative aspect-square bg-slate-50 rounded-lg overflow-hidden mb-4">
-                  <Image
-                    src={
-                      variant.files.find((f) => f.type === "preview")
-                        ?.preview_url || variant.product.image
-                    }
-                    alt={variant.name}
-                    fill
-                    className="object-contain p-4"
-                  />
-                </div>
-                <h3 className="font-semibold text-slate-900 mb-2 text-sm">
-                  {variant.name}
-                </h3>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-lg font-bold text-orange-600">
-                    {formatBtc(variant.retail_price)}
-                  </span>
-                  {variant.synced && (
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                      <Check className="w-3 h-3" />
-                      Available
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-slate-500 mb-3">
-                  (€{variant.retail_price})
-                </div>
-                <div className="space-y-1 text-xs text-slate-600">
-                  <p>
-                    Color:{" "}
-                    <span className="font-medium text-slate-900">
-                      {variant.color}
-                    </span>
-                  </p>
-                  <p>
-                    Size:{" "}
-                    <span className="font-medium text-slate-900">
-                      {variant.size}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            ))}
+
+{/* Similar Products Section */}
+<div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-12">
+  <h2 className="text-2xl font-bold text-slate-900 mb-6">
+    Similar Products You May Like
+  </h2>
+  {similarProductsLoading ? (
+    <div className="flex justify-center py-12">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+    </div>
+  ) : similarProducts.length > 0 ? (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {similarProducts.slice(0, 4).map((item) => (
+        <div
+          key={`${item.merchantInfo.store_id}-${item.id}`}
+          onClick={() =>
+            router.push(`/product/${item.merchantInfo.store_id}/${item.id}`)
+          }
+          className="cursor-pointer rounded-xl border-2 border-slate-200 bg-white hover:border-slate-400 p-5 transition-all hover:shadow-md"
+        >
+          <div className="relative aspect-square bg-slate-50 rounded-lg overflow-hidden mb-4">
+            <Image
+              src={item.thumbnail_url}
+              alt={item.name}
+              fill
+              className="object-contain p-4"
+            />
           </div>
+          
+          <div className="flex items-center gap-2 mb-2">
+            <Image
+              src={`https://dmarketplacebackend.vercel.app/${item.merchantInfo.logoImg?.replace(/\\/g, "/")}`}
+              alt={item.merchantInfo.shopName}
+              width={16}
+              height={16}
+              className="rounded-full"
+            />
+            <span className="text-xs text-slate-500">
+              {item.merchantInfo.shopName}
+            </span>
+          </div>
+
+          <h3 className="font-semibold text-slate-900 mb-2 text-sm line-clamp-2">
+            {item.name}
+          </h3>
+          
+          <div className="flex items-center justify-between mb-2">
+            {item.synced > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
+                <Check className="w-3 h-3" />
+                In Stock
+              </span>
+            )}
+          </div>
+          
+          {item.variants && (
+            <div className="text-xs text-slate-500 mt-2">
+              {item.variants} variants available
+            </div>
+          )}
         </div>
+      ))}
+    </div>
+  ) : (
+    <div className="text-center py-12 text-slate-500">
+      No similar products found
+    </div>
+  )}
+</div>
+
+
+
+        {/* Recently Viewed Products Section */}
+        {recentlyViewed.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">
+              Recently Viewed Products
+            </h2>
+            {recentlyViewedLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {recentlyViewed.slice(0, 4).map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() =>
+                      router.push(`/product/${item.storeId}/${item.productId}`)
+                    }
+                    className="cursor-pointer rounded-xl border-2 border-slate-200 bg-white hover:border-slate-400 p-5 transition-all hover:shadow-md"
+                  >
+                    <div className="relative aspect-square bg-slate-50 rounded-lg overflow-hidden mb-4">
+                      <Image
+                        src={item.productImg}
+                        alt={item.productName}
+                        fill
+                        className="object-contain p-4"
+                      />
+                    </div>
+                    <h3 className="font-semibold text-slate-900 mb-2 text-sm line-clamp-2">
+                      {item.productName}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-orange-600">
+                        {formatBtc(item.productPrice)}
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      (€{item.productPrice})
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Cart Popup Modal */}

@@ -2,17 +2,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import img from "../assets/logo.png"
 
 // Constants for timing (in milliseconds)
-const COUNT_DURATION = 2000; // Time to count from 0 to 100 (slightly longer for the visual effect)
-const READY_DURATION = 1000; // Time to display "Let's shop"
+const COUNT_DURATION = 2000; // Time to count from 0 to 100
+const READY_DURATION = 1000; // Time to display logo
 const FADE_DURATION = 500; // Time for the page fade-out animation
 
 export default function LoadingScreen({ children }) {
     const [isLoading, setIsLoading] = useState(true);
     const [isFadingOut, setIsFadingOut] = useState(false);
     const [progress, setProgress] = useState(0); // Counter state
-    const [isReady, setIsReady] = useState(false); // "Let's shop" state
+    const [isReady, setIsReady] = useState(false); // Logo display state
 
     useEffect(() => {
         if (isLoading && !isFadingOut) {
@@ -30,11 +32,11 @@ export default function LoadingScreen({ children }) {
                 if (newProgress === 100) {
                     clearInterval(countInterval);
 
-                    // --- Phase 2: Show "Let's shop" ---
+                    // --- Phase 2: Show logo ---
                     setTimeout(() => {
                         setIsReady(true);
                         
-                        // --- Phase 3: Initiate fade out after "Let's shop" is visible ---
+                        // --- Phase 3: Initiate fade out after logo is visible ---
                         setTimeout(() => {
                             setIsFadingOut(true);
 
@@ -84,19 +86,19 @@ export default function LoadingScreen({ children }) {
     // Style for the main text container to keep alignment simple
     const contentContainerStyle = {
         textAlign: 'center',
-        position: 'relative', // Context for absolute positioning of 'Let's shop'
+        position: 'relative', // Context for absolute positioning of logo
         width: '80%', // Limit width for the progress bar
         maxWidth: '400px',
     };
     
     // Counter text style
     const counterTextStyle = {
-        fontSize: "3rem", // Slightly reduced size
+        fontSize: "3rem",
         marginBottom: "1.5rem",
         transition: "opacity 0.3s ease-in-out, transform 0.3s ease-in-out",
         opacity: isReady ? 0 : 1, 
-        transform: isReady ? 'translateY(-10px)' : 'translateY(0)', // Subtle movement on hide
-        color: primaryGreen, // Make the count green
+        transform: isReady ? 'translateY(-10px)' : 'translateY(0)',
+        color: primaryGreen,
     };
 
     // Progress Bar container
@@ -107,7 +109,7 @@ export default function LoadingScreen({ children }) {
         borderRadius: '4px',
         overflow: 'hidden',
         transition: "opacity 0.3s ease-in-out",
-        opacity: isReady ? 0 : 1, // Hide when "Let's shop" appears
+        opacity: isReady ? 0 : 1, // Hide when logo appears
     };
 
     // Progress Bar filler
@@ -115,23 +117,19 @@ export default function LoadingScreen({ children }) {
         height: '100%',
         width: `${progress}%`, // Controlled by state
         backgroundColor: primaryGreen,
-        transition: `width ${COUNT_DURATION / 1000 / 100 * 3}s linear`, // Transition width smoothly
+        transition: `width ${COUNT_DURATION / 1000 / 100 * 3}s linear`,
         borderRadius: '4px',
     };
 
-    // "Let's shop" message style
-    const readyTextStyle = {
-        fontSize: "2.5rem", // Slightly larger
-        color: primaryGreen,
-        fontWeight: "700",
-        transition: "opacity 0.5s ease-in",
+    // Logo container style
+    const logoContainerStyle = {
+        transition: "opacity 0.5s ease-in, transform 0.5s ease-in",
         opacity: isReady ? 1 : 0, 
-        // Positioned over the bar area
+        transform: isReady ? 'scale(2)' : 'scale(0.8)', // Slight zoom-in effect
         position: 'absolute', 
         top: '50%', 
         left: '50%',
-        transform: 'translate(-50%, -50%)',
-        whiteSpace: 'nowrap',
+        transform: isReady ? 'translate(-50%, -50%) scale(1.2)' : 'translate(-50%, -50%) scale(0.8)',
     };
 
     return (
@@ -147,9 +145,15 @@ export default function LoadingScreen({ children }) {
                     <div style={progressBarFillerStyle} />
                 </div>
                 
-                {/* "Let's shop" Message (Absolute position for smooth transition) */}
-                <div style={readyTextStyle}>
-                    Let's shop
+                {/* Logo (Absolute position for smooth transition) */}
+                <div style={logoContainerStyle}>
+                    <Image 
+                        src={img}
+                        alt="Logo" 
+                        width={450} 
+                        height={450}
+                        priority
+                    />
                 </div>
             </div>
         </div>

@@ -5,7 +5,7 @@ import Image from 'next/image'
 
 const FeaturedBanner = () => {
     return (
-        <div className='px-6  my-20 max-w-6xl mx-auto'>
+        <div className='px-6  my-10 max-w-6xl mx-auto'>
             <div className='relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 p-8 sm:p-12 lg:p-16'>
                 <div className='relative z-10 max-w-2xl'>
                     <div className='inline-block mb-4'>

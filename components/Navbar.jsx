@@ -1,36 +1,131 @@
 'use client'
-import { ChevronsLeftRightEllipsis, Search, ShoppingCart, Wallet, X } from "lucide-react";
+import { ChevronsLeftRightEllipsis, Search, ShoppingCart, Wallet, X, Loader2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
+import img from "../assets/logo.png"
 
 const Navbar = () => {
 
     const router = useRouter();
 
     const [search, setSearch] = useState('')
+    const [searchResults, setSearchResults] = useState([])
+    const [isSearching, setIsSearching] = useState(false)
+    const [showDropdown, setShowDropdown] = useState(false)
     const [walletAddress, setWalletAddress] = useState('')
     const [isConnecting, setIsConnecting] = useState(false)
     const [isLogin, setIsLogin] = useState(false)
     const [error, setError] = useState('')
     const cartCount = useSelector(state => state.cart.total)
+    
+    const searchRef = useRef(null)
+    const debounceTimerRef = useRef(null)
+
+    // Click outside to close dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (searchRef.current && !searchRef.current.contains(event.target)) {
+                setShowDropdown(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     // Listen for account changes
     useEffect(() => {
         if (typeof window.ethereum !== 'undefined') {
-            // Listen for account changes
             window.ethereum.on('accountsChanged', handleAccountsChanged)
-            
-            // Cleanup listener on unmount
             return () => {
                 window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
             }
         }
     }, [])
 
+    // Debounced search effect
+    useEffect(() => {
+        // Clear previous timer
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current)
+        }
+
+        // Don't search if query is empty or too short
+        if (!search || search.trim().length < 2) {
+            setSearchResults([])
+            setShowDropdown(false)
+            return
+        }
+
+        // Set new timer for debounced search
+        debounceTimerRef.current = setTimeout(() => {
+            searchProducts(search)
+        }, 500) // 500ms debounce delay
+
+        // Cleanup timer on unmount or when search changes
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current)
+            }
+        }
+    }, [search])
+
+    const searchProducts = async (query) => {
+        try {
+            setIsSearching(true)
+            
+            // Fetch all merchants with products
+            const response = await fetch('https://dmarketplacebackend.vercel.app/merchant/all-merchants-products')
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch products')
+            }
+
+            const result = await response.json()
+            const merchantsData = result.data || []
+
+            // Search through all products from all merchants
+            const foundProducts = []
+            
+            merchantsData.forEach(({ merchant, products }) => {
+                if (products && Array.isArray(products)) {
+                    products.forEach(product => {
+                        // Case-insensitive search in product name
+                        if (product.name && product.name.toLowerCase().includes(query.toLowerCase())) {
+                            foundProducts.push({
+                                ...product,
+                                merchantName: merchant.shopName,
+                                store_id: merchant.store_id
+                            })
+                        }
+                    })
+                }
+            })
+
+            setSearchResults(foundProducts.slice(0, 8)) // Limit to 8 results
+            setShowDropdown(true) // Always show dropdown when search is complete
+        } catch (err) {
+            console.error('Search error:', err)
+            setSearchResults([])
+        } finally {
+            setIsSearching(false)
+        }
+    }
+
+    const handleProductClick = (product) => {
+        // Navigate to product page
+        router.push(`/product/${product.store_id}/${product.id}`)
+        setShowDropdown(false)
+        setSearch('')
+        setSearchResults([])
+    }
+
     const registerUser = async (walletAddress) => {
         try {
+            // const response = await fetch("https://dmarketplacebackend.vercel.app/user/register", {
             const response = await fetch("https://dmarketplacebackend.vercel.app/user/register", {
                 method: "POST", 
                 headers: {
@@ -56,16 +151,11 @@ const Navbar = () => {
         }
     };
     
-    // Then use it in both places:
-
-    
     const handleAccountsChanged = (accounts) => {
         console.log("account changed function worked")
         if (accounts.length === 0) {
-            // User disconnected all accounts
             setWalletAddress('')
         } else {
-            // User switched accounts
             try{
                 console.log("data sending")
                 const data = { walletAddress: accounts[0] } ; 
@@ -92,7 +182,6 @@ const Navbar = () => {
                     setError("error found" , err)
                 })
 
-
                 setWalletAddress(accounts[0])
 
             }catch(err){
@@ -104,7 +193,10 @@ const Navbar = () => {
 
     const handleSearch = (e) => {
         e.preventDefault()
-        router.push(`/shop?search=${search}`)
+        if (search.trim()) {
+            router.push(`/shop?search=${search}`)
+            setShowDropdown(false)
+        }
     }
 
     const handleLoginClick = async () => {
@@ -112,19 +204,15 @@ const Navbar = () => {
         setError('')
 
         try {
-            // Check if MetaMask is installed specifically
             if (typeof window.ethereum === 'undefined') {
                 setError('MetaMask is not installed! Please install MetaMask browser extension.')
                 setIsConnecting(false)
-                // Open MetaMask installation page
                 window.open('https://metamask.io/download/', '_blank')
                 return
             }
 
-            // Get the MetaMask provider specifically (not Phantom or other wallets)
             let provider = window.ethereum
 
-            // If multiple wallets are installed, find MetaMask specifically
             if (window.ethereum.providers) {
                 provider = window.ethereum.providers.find(p => p.isMetaMask)
                 if (!provider) {
@@ -133,13 +221,11 @@ const Navbar = () => {
                     return
                 }
             } else if (!window.ethereum.isMetaMask) {
-                // If only one provider exists but it's not MetaMask
                 setError('Please use MetaMask wallet. Other wallets are not supported.')
                 setIsConnecting(false)
                 return
             }
 
-            // First disconnect any existing connection to force account selection
             try {
                 await provider.request({
                     method: 'wallet_revokePermissions',
@@ -151,15 +237,12 @@ const Navbar = () => {
                 console.log('Revoke not needed or failed:', revokeErr)
             }
 
-            // Request account access from MetaMask specifically
             const accounts = await provider.request({ 
                 method: 'eth_requestAccounts' 
             })
 
             if (accounts && accounts.length > 0) {
-                // Store the wallet address
                 await registerUser(accounts[0])
-
                 setWalletAddress(accounts[0])
                 console.log('Connected MetaMask wallet:', accounts[0])
             }
@@ -192,11 +275,15 @@ const Navbar = () => {
             <div className="mx-6">
                 <div className="flex items-center justify-between max-w-7xl mx-auto py-4 transition-all">
 
-                    <Link href="/" className="relative text-4xl font-semibold text-slate-700">
-                        <span className="text-green-600">DM</span>arketplace<span className="text-green-600 text-5xl leading-0">.</span>
-                        <p className="absolute text-xs font-semibold -top-1 -right-8 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-500">
-                            plus
-                        </p>
+                    <Link href="/" className="relative flex items-center">
+                        <Image 
+                            src={img}
+                            alt="DMarketplace Logo"
+                            width={180}
+                            height={60}
+                            className="h-12 scale-150 sm:scale-300 w-auto"
+                            priority
+                        />
                     </Link>
 
                     {/* Desktop Menu */}
@@ -222,15 +309,87 @@ const Navbar = () => {
                             <span className="absolute bottom-0 left-0 w-0 h-[3px] bg-green-500 transition-all duration-300 group-hover:w-full"></span>
                         </Link>
 
-                        <form onSubmit={handleSearch} className="hidden xl:flex items-center w-xs text-sm gap-2 bg-slate-100 px-4 py-3 rounded-full">
-                            <Search size={18} className="text-slate-600" />
-                            <input className="w-full bg-transparent outline-none placeholder-slate-600" type="text" placeholder="Search products" value={search} onChange={(e) => setSearch(e.target.value)} required />
-                        </form>
+                        {/* Search with Dropdown */}
+                        <div ref={searchRef} className="hidden xl:block relative">
+                            <form onSubmit={handleSearch} className="flex items-center w-xs text-sm gap-2 bg-slate-100 px-4 py-3 rounded-full">
+                                {isSearching ? (
+                                    <Loader2 size={18} className="text-slate-600 animate-spin" />
+                                ) : (
+                                    <Search size={18} className="text-slate-600" />
+                                )}
+                                <input 
+                                    className="w-full bg-transparent outline-none placeholder-slate-600" 
+                                    type="text" 
+                                    placeholder="Search products" 
+                                    value={search} 
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    onFocus={() => search.length >= 2 && setShowDropdown(true)}
+                                />
+                            </form>
 
-                        <Link href="/cart" className="relative flex items-center gap-2 text-slate-600 py-1 pb-2">
-                            <ShoppingCart size={18} />
-                            Cart
-                            <button className="absolute -top-[5px] left-3 text-[12px] text-white bg-slate-600 w-[14px] h-[14px] flex justify-center items-center rounded-full">+</button>
+                            {/* Search Dropdown */}
+                            {showDropdown && (
+                                <div className="absolute top-full mt-2 w-96 bg-white rounded-lg shadow-xl border border-slate-200 max-h-96 overflow-y-auto z-50">
+                                    {searchResults.length > 0 ? (
+                                        <>
+                                            <div className="p-2">
+                                                <div className="text-xs text-slate-500 px-3 py-2 font-medium">
+                                                    Found {searchResults.length} product{searchResults.length !== 1 ? 's' : ''}
+                                                </div>
+                                                {searchResults.map((product) => (
+                                                    <button
+                                                        key={`${product.store_id}-${product.id}`}
+                                                        onClick={() => handleProductClick(product)}
+                                                        className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors text-left"
+                                                    >
+                                                        <img 
+                                                            src={product.thumbnail_url} 
+                                                            alt={product.name}
+                                                            className="w-12 h-12 object-cover rounded-md border border-slate-200"
+                                                            onError={(e) => {
+                                                                e.target.src = 'https://via.placeholder.com/48'
+                                                            }}
+                                                        />
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-sm font-medium text-slate-900 truncate">
+                                                                {product.name}
+                                                            </div>
+                                                            <div className="text-xs text-slate-500 truncate">
+                                                                {product.merchantName}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            
+                                            {searchResults.length === 8 && (
+                                                <div className="border-t border-slate-200 p-3">
+                                                    <button
+                                                        onClick={handleSearch}
+                                                        className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                                    >
+                                                        View all results →
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="p-8 text-center">
+                                            <Search size={48} className="mx-auto text-slate-300 mb-3" />
+                                            <p className="text-sm text-slate-600 font-medium mb-1">No matches found</p>
+                                            <p className="text-xs text-slate-500">Try searching with different keywords</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <Link href="/cart" className="relative flex items-center gap-2 text-slate-600 py-1 pb-2 group/cart">
+                            <ShoppingCart size={18} className="transition-transform group-hover/cart:scale-110 group-active/cart:scale-95" />
+                            <span className="transition-colors group-hover/cart:text-slate-900">Cart</span>
+                            <span className="absolute -top-[5px] left-3 text-[12px] text-white bg-slate-600 w-[14px] h-[14px] flex justify-center items-center rounded-full transition-transform group-hover/cart:scale-110 group-active/cart:scale-90">
+                                +
+                            </span>
                         </Link>
 
                         {!walletAddress ? (

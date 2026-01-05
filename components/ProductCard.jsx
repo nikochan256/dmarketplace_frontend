@@ -24,14 +24,14 @@ const ProductCard = ({ product , storeid }) => {
     return (
         <div
             onClick={handleClick}
-            className='group max-xl:mx-auto block relative'
+            className='group max-xl:mx-auto block relative cursor-pointer'
         >
             <div className='bg-[#F5F5F5] h-40 sm:w-60 sm:h-68 rounded-lg flex items-center justify-center relative overflow-hidden'>
                 {product.image || product.thumbnail ? (
                     <Image 
                         width={500} 
                         height={500} 
-                        className='max-h-30 sm:max-h-40 w-auto group-hover:scale-115 group-hover:blur-[5px] transition-all duration-300' 
+                        className='max-h-30 sm:max-h-40 w-auto group-hover:scale-110 transition-transform duration-300' 
                         src={product.image || product.thumbnail} 
                         alt={product.name} 
                     />
@@ -43,16 +43,14 @@ const ProductCard = ({ product , storeid }) => {
                 
                 {/* Hover Info Slide */}
                 <div className='absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-2 transition-transform duration-300 bg-white/95 rounded-t-lg p-3 shadow-lg'>
-                    <p className='text-xs text-gray-600 line-clamp-2 mb-1'>
-                        {product.description || 'Premium quality product with excellent features'}
-                    </p>
+                  
                     <p className='text-xs text-gray-500'>
-                        Seller: <span className='font-medium text-gray-700'>{product.name || 'Official Store'}</span>
+                        Product: <span className='font-medium text-gray-700'>{product.name || 'Official Store'}</span>
                     </p>
                 </div>
             </div>
             
-            <div className='flex justify-between gap-3 text-sm text-slate-800 pt-2 max-w-60'>
+            <div className='flex justify-between gap-1 text-sm text-slate-800 pt-2 max-w-60'>
                 <div>
                     <p>{product.name}</p>
                     <div className='flex'>
@@ -66,7 +64,6 @@ const ProductCard = ({ product , storeid }) => {
                         ))}
                     </div>
                 </div>
-                <p>{currency}{product.price}</p>
             </div>
         </div>
     )

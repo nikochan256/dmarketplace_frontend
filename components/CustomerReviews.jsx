@@ -27,7 +27,7 @@ const CustomerReviews = () => {
     ]
 
     return (
-        <div className='px-6 pt-20 my-20 max-w-6xl mx-auto'>
+        <div className='px-6 pt-20 my-10 max-w-6xl mx-auto'>
             <div className='relative inline-block mb-4'>
                 <h2 className='text-3xl font-bold text-slate-800'>Customer Reviews</h2>
             </div>

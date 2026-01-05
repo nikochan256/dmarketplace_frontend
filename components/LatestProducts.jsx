@@ -53,13 +53,13 @@ const ProductSections = () => {
 
     if (loading) {
         return (
-            <div className='px-6 my-20 max-w-6xl mx-auto'>
-                <div className='animate-pulse space-y-20'>
+            <div className='px-4 sm:px-6 py-8 sm:py-12 max-w-6xl mx-auto'>
+                <div className='animate-pulse space-y-12 sm:space-y-16'>
                     {/* Best Selling Skeleton */}
                     <div className='text-center'>
-                        <div className='h-8 bg-gray-200 rounded w-48 mx-auto mb-4'></div>
-                        <div className='h-4 bg-gray-200 rounded w-64 mx-auto mb-12'></div>
-                        <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6'>
+                        <div className='h-8 bg-gray-200 rounded w-48 mx-auto mb-3'></div>
+                        <div className='h-4 bg-gray-200 rounded w-64 mx-auto mb-8'></div>
+                        <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6'>
                             {[...Array(8)].map((_, i) => (
                                 <div key={i} className='h-64 bg-gray-200 rounded-lg'></div>
                             ))}
@@ -68,9 +68,9 @@ const ProductSections = () => {
                     
                     {/* Latest Products Skeleton */}
                     <div className='text-center'>
-                        <div className='h-8 bg-gray-200 rounded w-48 mx-auto mb-4'></div>
-                        <div className='h-4 bg-gray-200 rounded w-64 mx-auto mb-12'></div>
-                        <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6'>
+                        <div className='h-8 bg-gray-200 rounded w-48 mx-auto mb-3'></div>
+                        <div className='h-4 bg-gray-200 rounded w-64 mx-auto mb-8'></div>
+                        <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6'>
                             {[...Array(4)].map((_, i) => (
                                 <div key={i} className='h-64 bg-gray-200 rounded-lg'></div>
                             ))}
@@ -90,7 +90,7 @@ const ProductSections = () => {
     return (
         <div>
             {/* Latest Products Section */}
-            <div className='px-6 my-20 max-w-6xl mx-auto text-center'>
+            <div className='px-4 sm:px-6 py-8 sm:py-12 max-w-6xl mx-auto text-center'>
                 <div className='relative inline-block mb-2'>
                     <Title 
                         title='Latest Products' 
@@ -99,7 +99,7 @@ const ProductSections = () => {
                     />
                 </div>
                 
-                <div className='mt-12 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6'>
+                <div className='mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6'>
                     {latestProducts.map((product) => (
                         <ProductCard 
                             key={`latest-${product.id}`} 
@@ -110,12 +110,12 @@ const ProductSections = () => {
                 </div>
                 
                 {latestProducts.length === 0 && (
-                    <div className='mt-12 text-gray-500'>
+                    <div className='mt-8 text-gray-500'>
                         <p>No products available at the moment</p>
                     </div>
                 )}
                 
-                <div className='mt-16 flex items-center justify-center'>
+                <div className='mt-10 sm:mt-12 flex items-center justify-center'>
                     <div className='h-[1px] w-full max-w-md bg-gradient-to-r from-transparent via-gray-200 to-transparent'></div>
                 </div>
 
@@ -143,8 +143,8 @@ const ProductSections = () => {
             </div>
 
             {/* Best Selling Section */}
-            <div className='px-6 my-20 max-w-6xl mx-auto text-center'>
-                <div className='relative inline-block mb-4'>
+            <div className='px-4 sm:px-6 py-8 sm:py-12 max-w-6xl mx-auto text-center'>
+                <div className='relative inline-block mb-2'>
                     <Title 
                         title='Best Selling' 
                         description={`Showing ${bestSellingProducts.length} featured products`} 
@@ -152,7 +152,7 @@ const ProductSections = () => {
                     />
                 </div>
                 
-                <div className='mt-12 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6'>
+                <div className='mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6'>
                     {bestSellingProducts.map((product) => (
                         <ProductCard 
                             key={`best-${product.id}`} 
@@ -163,12 +163,12 @@ const ProductSections = () => {
                 </div>
                 
                 {bestSellingProducts.length === 0 && (
-                    <div className='mt-12 text-gray-500'>
+                    <div className='mt-8 text-gray-500'>
                         <p>No products available at the moment</p>
                     </div>
                 )}
                 
-                <div className='mt-16 flex items-center justify-center'>
+                <div className='mt-10 sm:mt-12 flex items-center justify-center'>
                     <div className='h-[1px] w-full max-w-md bg-gradient-to-r from-transparent via-gray-200 to-transparent'></div>
                 </div>
 
@@ -194,8 +194,6 @@ const ProductSections = () => {
                     }
                 `}</style>
             </div>
-
-            {/* Best Selling Section - Removed duplicate Latest Products section */}
         </div>
     )
 }

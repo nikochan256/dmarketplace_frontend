@@ -87,6 +87,7 @@ export default function CreateStore() {
             setPrintfulVerifying(true)
             console.log('🔍 Verifying Printful API Key...')
 
+            // const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dmarketplacebackend.vercel.app"
             const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dmarketplacebackend.vercel.app"
             const response = await fetch(`${API_URL}/merchant/verify-printful-api`, {
                 method: 'POST',
@@ -232,12 +233,12 @@ export default function CreateStore() {
                 hasKybDocument: !!storeInfo.kybDocument
             })
         
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dmarketplacebackend.vercel.app"
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
             console.log('🌐 API URL:', `${API_URL}/merchant/create-store`)
         
             toast.loading("Submitting application...")
             
-            const response = await fetch(`${API_URL}/merchant/create-store`, {
+            const response = await fetch(`http://localhost:4000/merchant/create-store`, {
                 method: "POST",
                 body: formData
             })
@@ -251,16 +252,33 @@ export default function CreateStore() {
                 toast.error(data.msg || "Failed to submit application")
                 return
             }
-        
+          
+            
             // Success
             console.log('🎉 Application submitted successfully!')
+
             toast.dismiss()
             toast.success("Application submitted!")
+
             
             setAlreadySubmitted(true)
             setStatus("pending")
             setMessage(data.msg || "Your application has been submitted successfully!")
-        
+            
+            const storeresponse = await fetch(`https://dmarketplacebackend.vercel.app/merchant/sync-store-products`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                  },                
+                  body: JSON.stringify({
+                    store_id: storeInfo.store_id,
+                    api_key: storeInfo.api_key,
+                }),
+            
+            })
+
+            const storedata = await storeresponse.json()
+            console.log('📥 Server response:', storedata)
             return data
         } catch (error) {
             console.error("❌ Submission error:", error)

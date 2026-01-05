@@ -1,6 +1,6 @@
-# Contributing to GoCart
+# Contributing to Dmarketplace
 
-Thank you for considering contributing to **GoCart**!
+Thank you for considering contributing to **Dmarketplace**!
 We welcome contributions from everyone, whether it's fixing a bug, adding a new feature, or optimizing the codebase.
 
 ---
@@ -9,7 +9,6 @@ We welcome contributions from everyone, whether it's fixing a bug, adding a new 
 - [How to Contribute](#how-to-contribute)
 - [Development Setup](#development-setup)
 - [Contribution Guidelines](#contribution-guidelines)
-- [Ideas for Contribution](#ideas-for-contribution)
 
 ---
 
@@ -44,27 +43,3 @@ We welcome contributions from everyone, whether it's fixing a bug, adding a new 
 
 ---
 
-## Ideas for Contribution
-
-Here are some areas where you can contribute:
-
-**Vendor-Specific Features:**
-- **Vendor Dashboard:** Build or enhance pages for vendors to manage products, view sales analytics, and handle orders.
-- **Product Management:** Implement features for vendors to add, edit, and remove their products.
-- **Vendor Onboarding:** Create or improve the registration and verification process for new vendors.
-
-**Customer-Facing Features:**
-- **Product Discovery:** Add advanced filtering and sorting options (e.g., by vendor, by rating).
-- **Vendor Profiles:** Create public-facing pages for each vendor to showcase their brand and products.
-- **Shopping Cart & Checkout:** Improve the cart functionality to handle products from multiple vendors.
-
-**General Improvements:**
-- **UI/UX:** Suggest and implement new design ideas to improve user experience.
-- **Performance:** Optimize components and queries for faster load times.
-- **Accessibility:** Enhance accessibility across the platform.
-- **Animations:** Add subtle animations and transitions to make the UI more engaging.
-- **Admin Panel:** Develop features for platform administrators to manage vendors, products, and commissions.
-
----
-
-We're excited to see your contributions! 🚀

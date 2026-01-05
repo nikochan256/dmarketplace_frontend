@@ -1,3 +1,4 @@
+// this is an old schema don't consider it , in this codebase there is no backend only frontend 
 generator client {
     provider        = "prisma-client-js"
     previewFeatures = ["driverAdapters"]

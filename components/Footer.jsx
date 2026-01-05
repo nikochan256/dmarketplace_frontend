@@ -12,19 +12,26 @@ const Footer = () => {
 
     const linkSections = [
         {
-            title: "PRODUCTS",
-            links: [
-                { text: "Earphones", path: '/', icon: null },
-                { text: "Headphones", path: '/', icon: null },
-                { text: "Smartphones", path: '/', icon: null },
-                { text: "Laptops", path: '/', icon: null },
-            ]
-        },
-        {
             title: "WEBSITE?",
             links: [
                 { text: "Home", path: '/', icon: null },
-                { text: "Privacy Policy", path: '/', icon: null },
+    
+                {
+                    text: "Privacy Policy",
+                    path: "https://app.termly.io/policy-viewer/policy.html?policyUUID=97783e1a-a68d-4a23-a8c7-572b31c875f3",
+                    icon: null
+                },
+                {
+                    text: "Terms of Use",
+                    path: "https://app.termly.io/policy-viewer/policy.html?policyUUID=268a0b5d-37cd-470c-989c-3e40161a4704",
+                    icon: null
+                },
+                {
+                    text: "Return Policy",
+                    path: "https://app.termly.io/policy-viewer/policy.html?policyUUID=c722b51e-a31f-44a2-9670-144af81ac95f",
+                    icon: null
+                },
+    
                 { text: "Become Plus Member", path: '/pricing', icon: null },
                 { text: "Create Your Store", path: '/create-store', icon: null },
             ]
@@ -38,6 +45,7 @@ const Footer = () => {
             ]
         }
     ];
+    
 
     const socialIcons = [
         { icon: FacebookIcon, link: "https://www.facebook.com" },
