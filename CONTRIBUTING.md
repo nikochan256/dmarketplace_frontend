@@ -9,7 +9,7 @@ We welcome contributions from everyone, whether it's fixing a bug, adding a new 
 - [How to Contribute](#how-to-contribute)
 - [Development Setup](#development-setup)
 - [Contribution Guidelines](#contribution-guidelines)
-
+ 
 ---
 
 ## How to Contribute

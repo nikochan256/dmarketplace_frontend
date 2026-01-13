@@ -1,10 +1,10 @@
 // app/layout.js
 import { Outfit } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import StoreProvider from "@/app/StoreProvider";
+// import StoreProvider from "../";
 import "./globals.css";
-import LoadingScreen from "@/components/LoadingScreen";
-import ClearStorageOnClose from "@/components/ClearStorageOnClose";
+import LoadingScreen from "../components/Loading";
+import ClearStorageOnClose from "../components/ClearStorageOnClose";
 
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "500", "600"] });
 
@@ -18,12 +18,12 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${outfit.className} antialiased`}>
         <ClearStorageOnClose>
-          <LoadingScreen>
-            <StoreProvider>
+          {/* <LoadingScreen> */}
+            {/* <StoreProvider> */}
               <Toaster />
               {children}
-            </StoreProvider>
-          </LoadingScreen>
+            {/* </StoreProvider> */}
+          {/* </LoadingScreen> */}
         </ClearStorageOnClose>
       </body>
     </html>

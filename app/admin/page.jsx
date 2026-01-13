@@ -1,7 +1,7 @@
 'use client'
-import { dummyAdminDashboardData } from "@/assets/assets"
-import Loading from "@/components/Loading"
-import OrdersAreaChart from "@/components/OrdersAreaChart"
+// import { dummyAdminDashboardData } from "@/assets/assets"
+import Loading from "../../components/Loading"
+import OrdersAreaChart from "../../components/OrdersAreaChart"
 import { CircleDollarSignIcon, ShoppingBasketIcon, StoreIcon, TagsIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -26,7 +26,7 @@ export default function AdminDashboard() {
     ]
 
     const fetchDashboardData = async () => {
-        setDashboardData(dummyAdminDashboardData)
+        setDashboardData("")
         setLoading(false)
     }
 

@@ -1,6 +1,6 @@
 "use client";
-import Counter from "@/components/Counter";
-import PageTitle from "@/components/PageTitle";
+// import Counter from "@/components/Counter";
+import PageTitle from "../../../components/PageTitle";
 import { Trash2Icon, ShoppingBag, CloudLightning } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -19,17 +19,25 @@ export default function Cart() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
-  const [address, setAddress] = useState({
-    name: "",
-    phone: "",
-    street: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "",
-    email: "",
+  const [address, setAddress] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedAddress = localStorage.getItem('shippingAddress');
+      if (savedAddress) {
+        return JSON.parse(savedAddress);
+      }
+    }
+    return {
+      name: "",
+      phone: "",
+      street: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      country: "",
+      email: "",
+    };
   });
-
+  
   const TESTING_MODE = false;
   const HARDCODED_WBTC_PRICE = 0.00001;
 
@@ -40,10 +48,14 @@ export default function Cart() {
   const fetchWbtcPrice = async () => {
     try {
       const response = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=wrapped-bitcoin&vs_currencies=eur"
+        "https://api.coingecko.com/api/v3/simple/price?ids=wrapped-bitcoin&vs_currencies=usd"
+
       );
       const data = await response.json();
-      setWbtcPrice(data["wrapped-bitcoin"].eur);
+      console.log("🔍 CoinGecko API Response:", data);
+    console.log("💰 WBTC Price in USD:", data["wrapped-bitcoin"].usd);
+
+      setWbtcPrice(data["wrapped-bitcoin"].usd);
       setWbtcLoading(false);
     } catch (err) {
       console.error("Error fetching WBTC price:", err);
@@ -52,50 +64,71 @@ export default function Cart() {
   };
 
   // Convert EUR to WBTC
-  const convertToWbtc = (eurAmount) => {
-    if (TESTING_MODE) {
-      return HARDCODED_WBTC_PRICE.toFixed(8);
+// Convert USD to WBTC
+const convertToWbtc = (usdAmount) => {
+  console.log("=== CONVERSION DEBUG ===");
+  console.log("💵 USD Amount:", usdAmount);
+  console.log("📊 WBTC Price:", wbtcPrice);
+  console.log("🧮 Calculation:", usdAmount, "/", wbtcPrice, "=", (usdAmount / wbtcPrice));
+  
+  if (TESTING_MODE) {
+    return HARDCODED_WBTC_PRICE.toFixed(8);
+  }
+  if (!wbtcPrice) return "0.00000000";
+  
+  const result = (usdAmount / wbtcPrice).toFixed(8);
+  console.log("✅ Final WBTC Amount:", result);
+  return result;
+};
+
+  
+const fetchCartFromDB = async () => {
+  try {
+    const userId = localStorage.getItem("dmarketplaceUserId");
+    console.log("👤 User ID:", userId);
+
+    if (!userId) {
+      console.log("⚠️ No user ID found in localStorage");
+      setLoading(false);
+      return;
     }
-    if (!wbtcPrice) return "0.00000000";
-    return (eurAmount / wbtcPrice).toFixed(8);
-  };
 
-  // Fetch cart items from database
-  const fetchCartFromDB = async () => {
-    try {
-      const userId = localStorage.getItem("dmarketplaceUserId");
+    setLoading(true);
+    const url = `https://dmarketplacebackend.vercel.app/user/user-cart/${userId}`;
+    console.log("📡 Fetching cart from:", url);
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
+    console.log("📥 Response status:", response.status);
 
-      setLoading(true);
-      const response = await fetch(
-        `https://dmarketplacebackend.vercel.app/user/user-cart/${userId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch cart items: ${response.status}`);
+    }
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch cart items");
-      }
+    const result = await response.json();
+    console.log("📦 Cart response:", result);
 
-      const result = await response.json();
-      console.log("Cart response:", result);
-
-      // Extract cart items from the nested structure
-      if (
-        result.data &&
-        result.data.cartItems &&
-        result.data.cartItems.length > 0
-      ) {
-        // Map cart items directly - they already contain product info from backend
-        const formattedItems = result.data.cartItems.map((item) => ({
+    // Extract cart items from the nested structure
+    if (
+      result.data &&
+      result.data.cartItems &&
+      result.data.cartItems.length > 0
+    ) {
+      // Map cart items directly - they already contain product info from backend
+      const formattedItems = result.data.cartItems.map((item) => {
+        console.log("🏷️ Backend Item:", {
+          name: item.productName,
+          price: item.productPrice,
+          priceType: typeof item.productPrice,
+          currency: item.currency
+        });
+        
+        return {
           cartItemId: item.id,
           variantId: item.variantId,
           storeId: item.storeId,
@@ -103,24 +136,32 @@ export default function Cart() {
           name: item.productName || "Product",
           image: item.productImg || "/placeholder.png",
           price: item.productPrice || 0,
-          currency: item.currency || "€",
+          currency: item.currency || "$",
           sku: item.sku || "N/A",
           color: item.color || "",
           size: item.size || "",
-        }));
+        };
+      });
 
-        setCartItems(formattedItems);
-      } else {
-        setCartItems([]);
-      }
-
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching cart:", err);
-      setError(err.message);
-      setLoading(false);
+      console.log("✅ Formatted cart items:", formattedItems);
+      setCartItems(formattedItems);
+    } else {
+      console.log("📭 Cart is empty");
+      setCartItems([]);
     }
-  };
+
+    setLoading(false);
+  } catch (err) {
+    console.error("❌ Error fetching cart:", err);
+    console.error("Error details:", {
+      message: err.message,
+      name: err.name,
+      stack: err.stack
+    });
+    setError(err.message);
+    setLoading(false);
+  }
+};
 
   // Delete item from cart
   const handleDeleteItemFromCart = async (cartItemId) => {
@@ -399,16 +440,7 @@ export default function Cart() {
 
       setShowCheckoutModal(false);
       setSelectedItem(null);
-      setAddress({
-        name: "",
-        phone: "",
-        street: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        country: "",
-        email: "",
-      });
+        // Address is preserved
 
       setPaymentStatus("Payment successful!");
       alert("✅ Payment successful!");
@@ -465,6 +497,8 @@ export default function Cart() {
     });
   };
 
+
+
   // Update order status in backend
   const updateOrderStatus = async (
     orderItemId,
@@ -506,6 +540,13 @@ export default function Cart() {
     const interval = setInterval(fetchWbtcPrice, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (address.name || address.email || address.street) {
+      localStorage.setItem('shippingAddress', JSON.stringify(address));
+    }
+  }, [address]);
+  
 
   if (loading || wbtcLoading) {
     return (
@@ -917,20 +958,11 @@ export default function Cart() {
             {/* Action Buttons */}
             <div className="flex gap-3">
               <button
-                onClick={() => {
-                  setShowCheckoutModal(false);
-                  setSelectedItem(null);
-                  setAddress({
-                    name: "",
-                    phone: "",
-                    street: "",
-                    city: "",
-                    state: "",
-                    zipCode: "",
-                    country: "",
-                    email: "",
-                  });
-                }}
+              onClick={() => {
+                setShowCheckoutModal(false);
+                setSelectedItem(null);
+                // Address is preserved
+              }}
                 className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-colors"
               >
                 Cancel

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
 import img from "../assets/logo.png"
 
 const Navbar = () => {
@@ -19,7 +19,7 @@ const Navbar = () => {
     const [isConnecting, setIsConnecting] = useState(false)
     const [isLogin, setIsLogin] = useState(false)
     const [error, setError] = useState('')
-    const cartCount = useSelector(state => state.cart.total)
+    // const cartCount = useSelector(state => state.cart.total)
     
     const searchRef = useRef(null)
     const debounceTimerRef = useRef(null)
