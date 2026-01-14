@@ -82,19 +82,7 @@ const AboutPage = () => {
       </div>
 
       {/* Footer CTA */}
-      <div className="max-w-3xl mx-auto px-4 pb-16">
-        <div className="border border-gray-200 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-            Ready to get started?
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Experience the future of commerce with cryptocurrency payments.
-          </p>
-          <button className="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg transition-colors">
-            Explore Platform
-          </button>
-        </div>
-      </div>
+     
     </div>
   );
 };

@@ -299,12 +299,12 @@ const Navbar = () => {
                             <span className="absolute bottom-0 left-0 w-0 h-[3px] bg-green-500 transition-all duration-300 group-hover:w-full"></span>
                         </Link>
                         
-                        <Link href="/" className="group relative py-1 pb-2">
+                        <Link href="/about" className="group relative py-1 pb-2">
                             <span>About</span>
                             <span className="absolute bottom-0 left-0 w-0 h-[3px] bg-green-500 transition-all duration-300 group-hover:w-full"></span>
                         </Link>
                         
-                        <Link href="/" className="group relative py-1 pb-2">
+                        <Link href="/contact_us" className="group relative py-1 pb-2">
                             <span>Contact</span>
                             <span className="absolute bottom-0 left-0 w-0 h-[3px] bg-green-500 transition-all duration-300 group-hover:w-full"></span>
                         </Link>

@@ -517,9 +517,9 @@ export function ProductDetailPage({ product, onClose, onClick, allProducts }) {
                     </>
                   )}
                 </button>
-                <button className="py-3.5 px-6 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
+                {/* <button className="py-3.5 px-6 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
                   <Sparkles size={20} /> Buy Now
-                </button>
+                </button> */}
               </div>
             </div>
           </div>

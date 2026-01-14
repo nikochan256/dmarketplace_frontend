@@ -20,8 +20,8 @@ export default function Cart() {
   const [paymentStatus, setPaymentStatus] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [address, setAddress] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedAddress = localStorage.getItem('shippingAddress');
+    if (typeof window !== "undefined") {
+      const savedAddress = localStorage.getItem("shippingAddress");
       if (savedAddress) {
         return JSON.parse(savedAddress);
       }
@@ -37,7 +37,7 @@ export default function Cart() {
       email: "",
     };
   });
-  
+
   const TESTING_MODE = false;
   const HARDCODED_WBTC_PRICE = 0.00001;
 
@@ -49,11 +49,10 @@ export default function Cart() {
     try {
       const response = await fetch(
         "https://api.coingecko.com/api/v3/simple/price?ids=wrapped-bitcoin&vs_currencies=usd"
-
       );
       const data = await response.json();
       console.log("🔍 CoinGecko API Response:", data);
-    console.log("💰 WBTC Price in USD:", data["wrapped-bitcoin"].usd);
+      console.log("💰 WBTC Price in USD:", data["wrapped-bitcoin"].usd);
 
       setWbtcPrice(data["wrapped-bitcoin"].usd);
       setWbtcLoading(false);
@@ -64,104 +63,111 @@ export default function Cart() {
   };
 
   // Convert EUR to WBTC
-// Convert USD to WBTC
-const convertToWbtc = (usdAmount) => {
-  console.log("=== CONVERSION DEBUG ===");
-  console.log("💵 USD Amount:", usdAmount);
-  console.log("📊 WBTC Price:", wbtcPrice);
-  console.log("🧮 Calculation:", usdAmount, "/", wbtcPrice, "=", (usdAmount / wbtcPrice));
-  
-  if (TESTING_MODE) {
-    return HARDCODED_WBTC_PRICE.toFixed(8);
-  }
-  if (!wbtcPrice) return "0.00000000";
-  
-  const result = (usdAmount / wbtcPrice).toFixed(8);
-  console.log("✅ Final WBTC Amount:", result);
-  return result;
-};
+  // Convert USD to WBTC
+  const convertToWbtc = (usdAmount) => {
+    console.log("=== CONVERSION DEBUG ===");
+    console.log("💵 USD Amount:", usdAmount);
+    console.log("📊 WBTC Price:", wbtcPrice);
+    console.log(
+      "🧮 Calculation:",
+      usdAmount,
+      "/",
+      wbtcPrice,
+      "=",
+      usdAmount / wbtcPrice
+    );
 
-  
-const fetchCartFromDB = async () => {
-  try {
-    const userId = localStorage.getItem("dmarketplaceUserId");
-    console.log("👤 User ID:", userId);
-
-    if (!userId) {
-      console.log("⚠️ No user ID found in localStorage");
-      setLoading(false);
-      return;
+    if (TESTING_MODE) {
+      return HARDCODED_WBTC_PRICE.toFixed(8);
     }
+    if (!wbtcPrice) return "0.00000000";
 
-    setLoading(true);
-    const url = `https://dmarketplacebackend.vercel.app/user/user-cart/${userId}`;
-    console.log("📡 Fetching cart from:", url);
-    
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const result = (usdAmount / wbtcPrice).toFixed(8);
+    console.log("✅ Final WBTC Amount:", result);
+    return result;
+  };
 
-    console.log("📥 Response status:", response.status);
+  const fetchCartFromDB = async () => {
+    try {
+      const userId = localStorage.getItem("dmarketplaceUserId");
+      console.log("👤 User ID:", userId);
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch cart items: ${response.status}`);
-    }
+      if (!userId) {
+        console.log("⚠️ No user ID found in localStorage");
+        setLoading(false);
+        return;
+      }
 
-    const result = await response.json();
-    console.log("📦 Cart response:", result);
+      setLoading(true);
+      const url = `https://dmarketplacebackend.vercel.app/user/user-cart/${userId}`;
+      console.log("📡 Fetching cart from:", url);
 
-    // Extract cart items from the nested structure
-    if (
-      result.data &&
-      result.data.cartItems &&
-      result.data.cartItems.length > 0
-    ) {
-      // Map cart items directly - they already contain product info from backend
-      const formattedItems = result.data.cartItems.map((item) => {
-        console.log("🏷️ Backend Item:", {
-          name: item.productName,
-          price: item.productPrice,
-          priceType: typeof item.productPrice,
-          currency: item.currency
-        });
-        
-        return {
-          cartItemId: item.id,
-          variantId: item.variantId,
-          storeId: item.storeId,
-          quantity: item.quantity,
-          name: item.productName || "Product",
-          image: item.productImg || "/placeholder.png",
-          price: item.productPrice || 0,
-          currency: item.currency || "$",
-          sku: item.sku || "N/A",
-          color: item.color || "",
-          size: item.size || "",
-        };
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      console.log("✅ Formatted cart items:", formattedItems);
-      setCartItems(formattedItems);
-    } else {
-      console.log("📭 Cart is empty");
-      setCartItems([]);
-    }
+      console.log("📥 Response status:", response.status);
 
-    setLoading(false);
-  } catch (err) {
-    console.error("❌ Error fetching cart:", err);
-    console.error("Error details:", {
-      message: err.message,
-      name: err.name,
-      stack: err.stack
-    });
-    setError(err.message);
-    setLoading(false);
-  }
-};
+      if (!response.ok) {
+        throw new Error(`Failed to fetch cart items: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("📦 Cart response:", result);
+
+      // Extract cart items from the nested structure
+      if (
+        result.data &&
+        result.data.cartItems &&
+        result.data.cartItems.length > 0
+      ) {
+        // Map cart items directly - they already contain product info from backend
+        const formattedItems = result.data.cartItems.map((item) => {
+          console.log("🏷️ Backend Item:", {
+            name: item.productName,
+            price: item.productPrice,
+            priceType: typeof item.productPrice,
+            currency: item.currency,
+          });
+
+          return {
+            cartItemId: item.id,
+            variantId: item.variantId,
+            productId: item.productId, // ✅ Add this line
+            storeId: item.storeId,
+            quantity: item.quantity,
+            name: item.productName || "Product",
+            image: item.productImg || "/placeholder.png",
+            price: item.productPrice || 0,
+            currency: item.currency || "$",
+            sku: item.sku || "N/A",
+            color: item.color || "",
+            size: item.size || "",
+          };
+        });
+
+        console.log("✅ Formatted cart items:", formattedItems);
+        setCartItems(formattedItems);
+      } else {
+        console.log("📭 Cart is empty");
+        setCartItems([]);
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.error("❌ Error fetching cart:", err);
+      console.error("Error details:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+      });
+      setError(err.message);
+      setLoading(false);
+    }
+  };
 
   // Delete item from cart
   const handleDeleteItemFromCart = async (cartItemId) => {
@@ -238,6 +244,8 @@ const fetchCartFromDB = async () => {
 
   // Handle checkout submission
   const handleCheckout = async () => {
+    let orderItemId = null; // MOVE THIS OUTSIDE TRY BLOCK
+
     try {
       setPaymentLoading(true);
       setPaymentStatus("Creating order...");
@@ -254,6 +262,8 @@ const fetchCartFromDB = async () => {
         !address.country ||
         !address.email
       ) {
+        setPaymentLoading(false);
+        setPaymentStatus("");
         alert("Please fill in all fields including name and phone");
         return;
       }
@@ -261,33 +271,17 @@ const fetchCartFromDB = async () => {
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(address.email)) {
+        setPaymentLoading(false);
+        setPaymentStatus("");
         alert("Please enter a valid email address");
         return;
       }
-
-      // Fetch API key from backend
-      const apiKeyResponse = await fetch(
-        `https://dmarketplacebackend.vercel.app/merchant/store_api_key/${selectedItem.storeId}`
-      );
-
-      if (!apiKeyResponse.ok) {
-        throw new Error("Failed to fetch store API key");
-      }
-
-      console.log("this is the api key ", apiKeyResponse);
-      const apiKeyData = await apiKeyResponse.json();
-      const printfulApiKey = apiKeyData.apiKey;
-
-      // Create order payload matching the backend API
-      // Validate address and email
-
-      // ... existing email validation ...
 
       // Create order payload matching the backend API
       const orderPayload = {
         quantity: selectedItem.quantity,
         variantId: selectedItem.variantId,
-        storeId: selectedItem.storeId,
+        productId: selectedItem.productId,
         productImg: selectedItem.image,
         productPrice: selectedItem.price,
         productName: selectedItem.name,
@@ -300,7 +294,6 @@ const fetchCartFromDB = async () => {
         zipCode: address.zipCode,
         state: address.state,
         country: address.country,
-        printfulApiKey: printfulApiKey,
       };
 
       const response = await fetch(
@@ -324,7 +317,7 @@ const fetchCartFromDB = async () => {
       console.log("Order created:", result);
 
       // Get the order item ID for status update
-      const orderItemId = result.orderItem.id;
+      orderItemId = result.orderItem.id; // NOW ACCESSIBLE IN CATCH
 
       // Now initiate payment via MetaMask
       setPaymentStatus("Waiting for wallet confirmation...");
@@ -334,16 +327,25 @@ const fetchCartFromDB = async () => {
       setPaymentLoading(false);
       setPaymentStatus("");
       console.error("Error creating order:", err);
-      alert("Failed to create order. Please try again.");
+
+      // If order was created but payment failed, we need to handle cleanup
+      if (err.orderCreated) {
+        alert(
+          "Order was created but payment failed. Please contact support or try again."
+        );
+      } else {
+        alert(err.message || "Failed to create order. Please try again.");
+      }
     }
   };
 
   // Handle WBTC payment via MetaMask
   const handleWBTCPayment = async (orderItemId, item) => {
+    let paymentOrderId = orderItemId; // CREATE LOCAL COPY
+
     try {
       if (!window.ethereum) {
-        alert("MetaMask is not installed");
-        return;
+        throw new Error("MetaMask is not installed");
       }
 
       // Prefer MetaMask if multiple wallets exist
@@ -351,8 +353,7 @@ const fetchCartFromDB = async () => {
       if (window.ethereum.providers?.length) {
         eth = window.ethereum.providers.find((p) => p.isMetaMask);
         if (!eth) {
-          alert("MetaMask not found");
-          return;
+          throw new Error("MetaMask not found");
         }
       }
 
@@ -366,16 +367,33 @@ const fetchCartFromDB = async () => {
       // 2️⃣ ENSURE ETH MAINNET
       const chainId = await eth.request({ method: "eth_chainId" });
       if (chainId !== "0x1") {
-        await eth.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x1" }],
-        });
+        try {
+          await eth.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x1" }],
+          });
+        } catch (switchError) {
+          if (switchError.code === 4902) {
+            throw new Error("Please add Ethereum Mainnet to your MetaMask and try again.");
+          } else if (switchError.code === 4001) {
+            throw new Error("Network switch rejected. Please switch to Ethereum Mainnet manually.");
+          }
+          throw switchError;
+        }
       }
+      
 
       // 3️⃣ FETCH MERCHANT WALLET
+      // 3️⃣ FETCH MERCHANT WALLET
       const walletRes = await fetch(
-        `https://dmarketplacebackend.vercel.app/merchant/store/${item.storeId}/wallet`
+        `https://dmarketplacebackend.vercel.app/merchant/product/${item.productId}/seller-wallet`
       );
+
+      if (!walletRes.ok) {
+        throw new Error(
+          "Failed to fetch merchant wallet address. Please try again."
+        );
+      }
 
       const walletJson = await walletRes.json();
       console.log(walletJson);
@@ -396,10 +414,10 @@ const fetchCartFromDB = async () => {
 
       if (!isValidEthAddress(walletAddress)) {
         console.error("❌ INVALID MERCHANT WALLET ADDRESS:", walletJson);
-        alert("Invalid merchant wallet address. Cannot proceed with payment.");
-        return;
+        throw new Error(
+          "Invalid merchant wallet address. Cannot proceed with payment. Please contact the seller."
+        );
       }
-
       // 5️⃣ CALCULATE PAYMENT IN WBTC
       const amountInWbtc = TESTING_MODE
         ? HARDCODED_WBTC_PRICE
@@ -440,7 +458,7 @@ const fetchCartFromDB = async () => {
 
       setShowCheckoutModal(false);
       setSelectedItem(null);
-        // Address is preserved
+      // Address is preserved
 
       setPaymentStatus("Payment successful!");
       alert("✅ Payment successful!");
@@ -451,13 +469,45 @@ const fetchCartFromDB = async () => {
       setPaymentStatus("");
       console.error("=== WBTC PAYMENT ERROR ===", err);
 
-      if (err.code === 4001) {
-        alert("Transaction cancelled by user");
-      } else if (err.code === -32002) {
-        alert("MetaMask request already pending");
-      } else {
-        alert(err.message || "Payment failed");
+      // Update order status to FAILED if order was created
+      if (paymentOrderId) {
+        // CHANGED FROM orderItemId
+        try {
+          await updateOrderStatus(paymentOrderId, "FAILED"); // CHANGED FROM orderItemId
+        } catch (statusErr) {
+          console.error("Failed to update order status:", statusErr);
+        }
       }
+
+      // Handle specific error cases
+      if (err.code === 4001) {
+        alert(
+          "❌ Transaction cancelled by user. Your order has been marked as failed."
+        );
+      } else if (err.code === -32002) {
+        alert(
+          "⚠️ MetaMask request already pending. Please check your MetaMask extension."
+        );
+      } else if (err.message?.includes("insufficient funds")) {
+        alert(
+          "❌ Insufficient WBTC balance in your wallet. Please add funds and try again."
+        );
+      } else if (err.message?.includes("Invalid merchant wallet")) {
+        alert(
+          "❌ Merchant wallet address is invalid. Please contact the seller."
+        );
+      } else {
+        alert(
+          `❌ Payment failed: ${
+            err.message || "Unknown error"
+          }. Your order has been marked as failed.`
+        );
+      }
+
+      // Throw error with flag so handleCheckout knows order was created
+      const enhancedError = new Error(err.message);
+      enhancedError.orderCreated = !!paymentOrderId; // CHANGED FROM orderItemId
+      throw enhancedError;
     }
   };
 
@@ -496,8 +546,6 @@ const fetchCartFromDB = async () => {
       checkTransaction();
     });
   };
-
-
 
   // Update order status in backend
   const updateOrderStatus = async (
@@ -543,10 +591,9 @@ const fetchCartFromDB = async () => {
 
   useEffect(() => {
     if (address.name || address.email || address.street) {
-      localStorage.setItem('shippingAddress', JSON.stringify(address));
+      localStorage.setItem("shippingAddress", JSON.stringify(address));
     }
   }, [address]);
-  
 
   if (loading || wbtcLoading) {
     return (
@@ -909,7 +956,7 @@ const fetchCartFromDB = async () => {
                 onChange={(e) =>
                   setAddress({ ...address, street: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900focus:border-transparent"
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
               />
 
               <div className="grid grid-cols-2 gap-4">
@@ -958,11 +1005,11 @@ const fetchCartFromDB = async () => {
             {/* Action Buttons */}
             <div className="flex gap-3">
               <button
-              onClick={() => {
-                setShowCheckoutModal(false);
-                setSelectedItem(null);
-                // Address is preserved
-              }}
+                onClick={() => {
+                  setShowCheckoutModal(false);
+                  setSelectedItem(null);
+                  // Address is preserved
+                }}
                 className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 transition-colors"
               >
                 Cancel
