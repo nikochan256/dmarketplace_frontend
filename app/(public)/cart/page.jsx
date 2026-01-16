@@ -51,8 +51,7 @@ export default function Cart() {
         "https://api.coingecko.com/api/v3/simple/price?ids=wrapped-bitcoin&vs_currencies=usd"
       );
       const data = await response.json();
-      console.log("🔍 CoinGecko API Response:", data);
-      console.log("💰 WBTC Price in USD:", data["wrapped-bitcoin"].usd);
+
 
       setWbtcPrice(data["wrapped-bitcoin"].usd);
       setWbtcLoading(false);
@@ -65,17 +64,8 @@ export default function Cart() {
   // Convert EUR to WBTC
   // Convert USD to WBTC
   const convertToWbtc = (usdAmount) => {
-    console.log("=== CONVERSION DEBUG ===");
-    console.log("💵 USD Amount:", usdAmount);
-    console.log("📊 WBTC Price:", wbtcPrice);
-    console.log(
-      "🧮 Calculation:",
-      usdAmount,
-      "/",
-      wbtcPrice,
-      "=",
-      usdAmount / wbtcPrice
-    );
+
+   
 
     if (TESTING_MODE) {
       return HARDCODED_WBTC_PRICE.toFixed(8);
@@ -83,24 +73,20 @@ export default function Cart() {
     if (!wbtcPrice) return "0.00000000";
 
     const result = (usdAmount / wbtcPrice).toFixed(8);
-    console.log("✅ Final WBTC Amount:", result);
     return result;
   };
 
   const fetchCartFromDB = async () => {
     try {
       const userId = localStorage.getItem("dmarketplaceUserId");
-      console.log("👤 User ID:", userId);
 
       if (!userId) {
-        console.log("⚠️ No user ID found in localStorage");
         setLoading(false);
         return;
       }
 
       setLoading(true);
       const url = `https://dmarketplacebackend.vercel.app/user/user-cart/${userId}`;
-      console.log("📡 Fetching cart from:", url);
 
       const response = await fetch(url, {
         method: "GET",
@@ -109,14 +95,12 @@ export default function Cart() {
         },
       });
 
-      console.log("📥 Response status:", response.status);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch cart items: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log("📦 Cart response:", result);
 
       // Extract cart items from the nested structure
       if (
@@ -126,12 +110,6 @@ export default function Cart() {
       ) {
         // Map cart items directly - they already contain product info from backend
         const formattedItems = result.data.cartItems.map((item) => {
-          console.log("🏷️ Backend Item:", {
-            name: item.productName,
-            price: item.productPrice,
-            priceType: typeof item.productPrice,
-            currency: item.currency,
-          });
 
           return {
             cartItemId: item.id,
@@ -149,10 +127,8 @@ export default function Cart() {
           };
         });
 
-        console.log("✅ Formatted cart items:", formattedItems);
         setCartItems(formattedItems);
       } else {
-        console.log("📭 Cart is empty");
         setCartItems([]);
       }
 
@@ -314,7 +290,6 @@ export default function Cart() {
       }
 
       const result = await response.json();
-      console.log("Order created:", result);
 
       // Get the order item ID for status update
       orderItemId = result.orderItem.id; // NOW ACCESSIBLE IN CATCH
@@ -396,17 +371,11 @@ export default function Cart() {
       }
 
       const walletJson = await walletRes.json();
-      console.log(walletJson);
       const walletAddress = walletJson.walletAddress;
-      console.log("this is the wallet address of seller ", walletAddress);
 
       // 🔎 HARD DEBUG LOGS
-      console.log("=== WBTC PAYMENT DEBUG ===");
-      console.log("User account:", userAccount);
-      console.log("Merchant wallet raw:", walletAddress);
-      console.log("Type:", typeof walletAddress);
-      console.log("Length:", walletAddress?.length);
-      console.log("=========================");
+   
+      ("=========================");
 
       // 4️⃣ VALIDATE ADDRESS (CRITICAL)
       const isValidEthAddress = (addr) =>
@@ -426,7 +395,6 @@ export default function Cart() {
       // Convert to smallest WBTC units (8 decimals)
       const wbtcUnits = BigInt(Math.floor(amountInWbtc * 1e8));
 
-      console.log("Sending WBTC:", amountInWbtc, "to", walletAddress);
       setPaymentStatus("Confirming transaction in MetaMask...");
 
       // 6️⃣ ENCODE ERC20 TRANSFER
@@ -448,7 +416,6 @@ export default function Cart() {
         ],
       });
       setPaymentStatus("Processing payment...");
-      console.log("✅ TX SENT:", txHash);
 
       // 8️⃣ UPDATE BACKEND
       await updateOrderStatus(orderItemId, "PAID", txHash);
@@ -528,7 +495,6 @@ export default function Cart() {
 
           if (receipt && receipt.blockNumber) {
             if (receipt.status === "0x1") {
-              console.log("✓ Transaction confirmed!");
               resolve(receipt);
             } else {
               reject(new Error("Transaction failed"));

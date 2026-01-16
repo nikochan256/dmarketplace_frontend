@@ -31,7 +31,7 @@ function MiniProductCard({ product, onClick }) {
     >
       <div className="relative aspect-square bg-slate-50 p-4 flex items-center justify-center overflow-hidden">
         <img
-          src={product.image}
+          src={product.image1}
           alt={product.name}
           className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500"
         />

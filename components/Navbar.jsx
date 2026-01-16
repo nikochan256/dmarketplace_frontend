@@ -174,9 +174,7 @@ const Navbar = () => {
             }
     
             const data = await response.json();
-            console.log("this is the user id in navbar ",data.data.id)
             localStorage.setItem("dmarketplaceUserId" , data.data.id)
-            console.log("user created", data.data);
             setIsLogin(true);
             return data;
         } catch (err) {
@@ -187,12 +185,10 @@ const Navbar = () => {
     };
     
     const handleAccountsChanged = (accounts) => {
-        console.log("account changed function worked")
         if (accounts.length === 0) {
             setWalletAddress('')
         } else {
             try{
-                console.log("data sending")
                 const data = { walletAddress: accounts[0] } ; 
                 fetch("https://dmarketplacebackend.vercel.app/user/register", {
                     method:"POST", 
@@ -209,11 +205,9 @@ const Navbar = () => {
                     return respons.json()
                 })
                 .then(data=>{
-                    console.log("user created " , data.data)
                     setIsLogin(true)
                 })
                 .catch(err=>{
-                    console.log(err)
                     setError("error found" , err)
                 })
 
@@ -269,7 +263,6 @@ const Navbar = () => {
                     }]
                 })
             } catch (revokeErr) {
-                console.log('Revoke not needed or failed:', revokeErr)
             }
 
             const accounts = await provider.request({ 
@@ -279,7 +272,7 @@ const Navbar = () => {
             if (accounts && accounts.length > 0) {
                 await registerUser(accounts[0])
                 setWalletAddress(accounts[0])
-                console.log('Connected MetaMask wallet:', accounts[0])
+                ('Connected MetaMask wallet:', accounts[0])
             }
         } catch (err) {
             console.error('Error connecting to MetaMask:', err)
@@ -297,7 +290,6 @@ const Navbar = () => {
 
     const handleDisconnect = () => {
         setWalletAddress('')
-        console.log('Wallet disconnected')
     }
 
     const truncateAddress = (address) => {

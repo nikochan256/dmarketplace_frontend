@@ -129,7 +129,6 @@ const ProductDetails = ({ product, storeId }) => {
             }
 
             const result = await response.json();
-            console.log(result.msg);
 
             dispatch(addToCart({ productId }));
 

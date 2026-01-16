@@ -22,7 +22,6 @@ const ProductSections = () => {
             }
             
             const data = await response.json()
-            console.log("Data received:", data)
             
             // Set store info
             setStoreInfo(data.store)

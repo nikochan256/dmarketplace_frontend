@@ -187,7 +187,7 @@ function ProductCard({ product, onClick }) {
                                 ₿ {btcPrice.toFixed(8)}
                             </div>
                             <div className="text-xs text-slate-600">
-                                ≈ ${(product.price / 100).toFixed(2)} USD
+                                ≈ ${product.price } USD
                             </div>
                         </div>
                     ) : (
@@ -435,7 +435,7 @@ function ShopContent() {
         }
         fetchProducts()
     }, [page])
-    
+
 
     useEffect(() => {
         const handleOpenProduct = (event) => {
@@ -571,7 +571,7 @@ function ShopContent() {
                 </div>
             </div>
 
-            <SpinningWheel isOpen={wheelOpen} onClose={() => setWheelOpen(false)} onComplete={(d) => console.log(d)} randomProduct={selectedProduct} />
+            <SpinningWheel isOpen={wheelOpen} onClose={() => setWheelOpen(false) } randomProduct={selectedProduct} />
         </div>
     )
 }

@@ -28,7 +28,6 @@ export default function CreateStore() {
     
     
     const onChangeHandler = (e) => {
-        console.log('📝 Form field changed:', e.target.name, '=', e.target.value)
         setStoreInfo({ ...storeInfo, [e.target.name]: e.target.value })
     }
 
@@ -36,7 +35,6 @@ export default function CreateStore() {
     const fetchBtcRate = async () => {
         try {
             setBtcLoading(true)
-            console.log('💰 Fetching BTC exchange rate...')
             
             const response = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=USD')
             const data = await response.json()
@@ -44,7 +42,6 @@ export default function CreateStore() {
             if (data && data.data && data.data.rates && data.data.rates.BTC) {
                 const usdToBtc = parseFloat(data.data.rates.BTC)
                 setBtcRate(usdToBtc)
-                console.log('✅ BTC Rate fetched:', usdToBtc)
             } else {
                 throw new Error('Invalid BTC rate response')
             }
@@ -71,18 +68,15 @@ export default function CreateStore() {
     }
 
     const fetchSellerStatus = async () => {
-        console.log('🔍 Fetching seller status...')
         // Logic to check if the store is already submitted
         setTimeout(() => {
-            console.log('✅ Seller status check complete')
             setLoading(false)
         }, 500) 
     }
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
-        console.log('📤 Form submission started')
-        console.log('📋 Store Info:', storeInfo)
+      
         
         setAddingToCart(true)
         
@@ -103,17 +97,13 @@ export default function CreateStore() {
         
             // File size validation (5MB)
             const maxSize = 5 * 1024 * 1024
-            console.log('📏 Image size:', storeInfo.image.size, 'bytes')
-            console.log('📏 Document size:', storeInfo.kybDocument.size, 'bytes')
-            
+
             if (storeInfo.image.size > maxSize) {
-                console.error('❌ Logo image too large:', storeInfo.image.size, 'bytes')
                 toast.error("Logo image must be less than 5MB")
                 setAddingToCart(false)  // ✅ Added
                 return
             }
             if (storeInfo.kybDocument.size > maxSize) {
-                console.error('❌ KYB document too large:', storeInfo.kybDocument.size, 'bytes')
                 toast.error("KYB document must be less than 5MB")
                 setAddingToCart(false)  // ✅ Added
                 return
@@ -129,21 +119,13 @@ export default function CreateStore() {
             formData.append("contact", storeInfo.contact)
             formData.append("address", storeInfo.address)
     
-            console.log('📦 FormData prepared:', {
-                shopName: storeInfo.name,
-                walletAddress: storeInfo.walletAddress,
-                businessEmail: storeInfo.email,
-                hasImage: !!storeInfo.image,
-                hasKybDocument: !!storeInfo.kybDocument
-            })
-        
+          
             // ✅ Log FormData contents for debugging
             for (let pair of formData.entries()) {
-                console.log('📋 FormData entry:', pair[0], '=', pair[1])
             }
         
             const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dmarketplacebackend.vercel.app"
-            console.log('🌐 API URL:', `${API_URL}/merchant/create-store`)
+            // const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
         
             toast.loading("Submitting application...")
             
@@ -153,17 +135,14 @@ export default function CreateStore() {
             })
         
             const data = await response.json()
-            console.log('📥 Server response:', data)
         
             if (!response.ok) {
-                console.error('❌ Server error:', data.msg || 'Unknown error')
                 toast.dismiss()
                 toast.error(data.msg || "Failed to submit application")
                 return
             }
           
             // Success
-            console.log('🎉 Application submitted successfully!')
     
             toast.dismiss()
             toast.success("Application submitted!")
@@ -184,7 +163,6 @@ export default function CreateStore() {
 
     
     useEffect(() => {
-        console.log('🚀 Component mounted - CreateStore page')
         fetchSellerStatus()
         fetchBtcRate()
         
@@ -251,7 +229,6 @@ export default function CreateStore() {
                                         <Upload className="w-4 h-4" />
                                         Upload Image
                                         <input type="file" accept="image/*" onChange={(e) => {
-                                            console.log('🖼️ Logo image selected:', e.target.files[0]?.name)
                                             setStoreInfo({ ...storeInfo, image: e.target.files[0] })
                                         }} hidden />
                                     </label>
@@ -367,7 +344,6 @@ export default function CreateStore() {
                                         </div>
                                     )}
                                     <input type="file" required accept=".pdf,image/*" onChange={(e) => {
-                                        console.log('📄 KYB document selected:', e.target.files[0]?.name)
                                         setStoreInfo({ ...storeInfo, kybDocument: e.target.files[0] })
                                     }} hidden />
                                 </label>
