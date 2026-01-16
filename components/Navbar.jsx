@@ -78,25 +78,36 @@ const Navbar = () => {
             setIsSearching(true)
             
             // Fetch all merchants with products
-            const response = await fetch('https://dmarketplacebackend.vercel.app/merchant/all-merchants-products')
+            const response = await fetch('https://dmarketplacebackend.vercel.app/merchant/all-merchants-products', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                mode: 'cors',
+            })
             
             if (!response.ok) {
                 throw new Error('Failed to fetch products')
             }
-
+    
             const result = await response.json()
             const merchantsData = result.data || []
-
+    
             // Search through all products from all merchants
             const foundProducts = []
             
             merchantsData.forEach(({ merchant, products }) => {
                 if (products && Array.isArray(products)) {
                     products.forEach(product => {
-                        // Case-insensitive search in product name
-                        if (product.name && product.name.toLowerCase().includes(query.toLowerCase())) {
+                        // Case-insensitive search in product name AND category
+                        const searchLower = query.toLowerCase()
+                        const matchesName = product.name && product.name.toLowerCase().includes(searchLower)
+                        const matchesCategory = product.category && product.category.toLowerCase().includes(searchLower)
+                        
+                        if (matchesName || matchesCategory) {
                             foundProducts.push({
                                 ...product,
+                                thumbnail_url: product.image1,
                                 merchantName: merchant.shopName,
                                 store_id: merchant.store_id
                             })
@@ -104,24 +115,48 @@ const Navbar = () => {
                     })
                 }
             })
-
-            setSearchResults(foundProducts.slice(0, 8)) // Limit to 8 results
-            setShowDropdown(true) // Always show dropdown when search is complete
+    
+            setSearchResults(foundProducts.slice(0, 8))
+            setShowDropdown(true)
         } catch (err) {
             console.error('Search error:', err)
             setSearchResults([])
+            setShowDropdown(false)
         } finally {
             setIsSearching(false)
         }
     }
-
     const handleProductClick = (product) => {
-        // Navigate to product page
-        router.push(`/product/${product.store_id}/${product.id}`)
-        setShowDropdown(false)
-        setSearch('')
-        setSearchResults([])
-    }
+        // Format the product data to match ProductDetailPage expectations
+        const formattedProduct = {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            category: product.category,
+            image1: product.thumbnail_url,
+            image2: product.image2,
+            image3: product.image3,
+            description: product.description,
+            seller: {
+                shopName: product.merchantName,
+                store_id: product.store_id,
+                logoImg: product.sellerLogo,
+                isApproved: product.isApproved,
+                kybStatus: product.kybStatus
+            }
+        };
+        
+        // Dispatch event to open product detail
+        window.dispatchEvent(
+            new CustomEvent('openProductDetail', {
+                detail: { product: formattedProduct }
+            })
+        );
+        
+        setShowDropdown(false);
+        setSearch('');
+        setSearchResults([]);
+    };
 
     const registerUser = async (walletAddress) => {
         try {
@@ -337,29 +372,35 @@ const Navbar = () => {
                                                     Found {searchResults.length} product{searchResults.length !== 1 ? 's' : ''}
                                                 </div>
                                                 {searchResults.map((product) => (
-                                                    <button
-                                                        key={`${product.store_id}-${product.id}`}
-                                                        onClick={() => handleProductClick(product)}
-                                                        className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors text-left"
-                                                    >
-                                                        <img 
-                                                            src={product.thumbnail_url} 
-                                                            alt={product.name}
-                                                            className="w-12 h-12 object-cover rounded-md border border-slate-200"
-                                                            onError={(e) => {
-                                                                e.target.src = 'https://via.placeholder.com/48'
-                                                            }}
-                                                        />
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="text-sm font-medium text-slate-900 truncate">
-                                                                {product.name}
-                                                            </div>
-                                                            <div className="text-xs text-slate-500 truncate">
-                                                                {product.merchantName}
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                ))}
+    <button
+        key={`${product.store_id}-${product.id}`}
+        onClick={() => handleProductClick(product)}
+        className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors text-left"
+    >
+        <img 
+            src={product.thumbnail_url} 
+            alt={product.name}
+            className="w-12 h-12 object-cover rounded-md border border-slate-200"
+            onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/48'
+            }}
+        />
+        <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-slate-900 truncate">
+                {product.name}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs text-slate-500 truncate">
+                    {product.merchantName}
+                </span>
+                {/* ADD THIS - Show category badge */}
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                    {product.category}
+                </span>
+            </div>
+        </div>
+    </button>
+))}
                                             </div>
                                             
                                             {searchResults.length === 8 && (

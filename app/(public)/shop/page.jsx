@@ -154,7 +154,7 @@ function ProductCard({ product, onClick }) {
                 const response = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=USD')
                 const data = await response.json()
                 const rate = parseFloat(data.data.rates.BTC)
-                setBtcPrice((product.price / 100) * rate)
+                setBtcPrice((product.price) * rate)
             } catch (error) {
                 console.error('Failed to fetch BTC rate:', error)
             }
@@ -173,18 +173,22 @@ function ProductCard({ product, onClick }) {
                 </span>
             </div>
             <div className="relative w-full h-40 sm:h-48 p-6 flex items-center justify-center">
-                <img src={product.image} alt={product.name} className="max-w-full max-h-full object-contain hover:scale-110 transition-transform duration-300"/>
+                <img src={product.image1} alt={product.name} className="max-w-full max-h-full object-contain hover:scale-110 transition-transform duration-300"/>
             </div>
             <div className="px-5 pb-5 flex flex-col">
                 <h3 className="font-semibold text-slate-800 text-sm sm:text-base mb-2 line-clamp-2">{product.name}</h3>
                 <div className="flex items-center gap-1 mb-3">
                     <Star size={14} className="fill-orange-400 text-orange-400" />
-                    <span className="text-xs text-slate-500">4.5</span>
                 </div>
                 <div className="space-y-2">
                     {btcPrice !== null ? (
-                        <div className="text-lg sm:text-xl font-bold text-orange-600">
-                            ₿ {btcPrice.toFixed(8)}
+                        <div>
+                            <div className="text-lg sm:text-xl font-bold text-orange-600">
+                                ₿ {btcPrice.toFixed(8)}
+                            </div>
+                            <div className="text-xs text-slate-600">
+                                ≈ ${(product.price / 100).toFixed(2)} USD
+                            </div>
                         </div>
                     ) : (
                         <div className="text-lg sm:text-xl font-bold text-slate-300">
@@ -431,6 +435,22 @@ function ShopContent() {
         }
         fetchProducts()
     }, [page])
+    
+
+    useEffect(() => {
+        const handleOpenProduct = (event) => {
+            setDetailProduct(event.detail.product)
+            setShowProductDetail(true)
+        }
+        
+        window.addEventListener('openProductDetail', handleOpenProduct)
+        
+        return () => {
+            window.removeEventListener('openProductDetail', handleOpenProduct)
+        }
+    }, [])
+
+
 
     const categories = useMemo(() => ['All Product', ...new Set(productsData.map(p => p.category))], [productsData])
 

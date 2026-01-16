@@ -51,14 +51,17 @@ function MiniProductCard({ product, onClick }) {
             {(Math.random() * (5 - 4) + 4).toFixed(1)}
           </span>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
   <span className="text-lg font-bold text-slate-900">
-    ₿ {((product.price / 100) * 0.000010).toFixed(8)}
+    ₿ {((product.price) * 0.000010).toFixed(8)}
   </span>
-  <button className="bg-slate-900 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
-    <ShoppingBag size={14} />
-  </button>
+  <span className="text-xs text-slate-600">
+    ≈ ${product.price}
+  </span>
 </div>
+<button className="bg-slate-900 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
+  <ShoppingBag size={14} />
+</button>
 
       </div>
     </div>
@@ -71,6 +74,7 @@ export function ProductDetailPage({ product, onClose, onClick, allProducts }) {
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartMessage, setCartMessage] = useState({ type: "", text: "" });
   const containerRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(0);
   const [cartCount, setCartCount] = useState(0);
   const [animateCart, setAnimateCart] = useState(false);
   const navigate = useRouter();
@@ -83,7 +87,7 @@ export function ProductDetailPage({ product, onClose, onClick, allProducts }) {
         );
         const data = await response.json();
         const rate = parseFloat(data.data.rates.BTC);
-        setBtcPrice((product.price / 100) * rate);
+        setBtcPrice((product.price) * rate);
       } catch (error) {
         console.error("Failed to fetch BTC rate:", error);
       }
@@ -279,15 +283,7 @@ export function ProductDetailPage({ product, onClose, onClick, allProducts }) {
             </button>
 
             <div className="flex items-center gap-3">
-              <button className="p-2 rounded-xl hover:bg-slate-100 transition-colors">
-                <Share2 size={20} className="text-slate-600" />
-              </button>
-              <button className="p-2 rounded-xl hover:bg-red-50 transition-colors group">
-                <Heart
-                  size={20}
-                  className="text-slate-600 group-hover:text-red-500 group-hover:fill-red-500 transition-colors"
-                />
-              </button>
+            
 
               {/* Cart Button */}
               <button
@@ -351,16 +347,39 @@ export function ProductDetailPage({ product, onClose, onClick, allProducts }) {
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
           {/* Left: Single Product Image */}
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden aspect-square flex items-center justify-center p-8 relative group">
-              <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
-                <Tag size={12} /> NEW ARRIVAL
-              </div>
-              <img
-                src={product.image}
-                alt={product.name}
-                className="max-w-[90%] max-h-[90%] object-contain group-hover:scale-105 transition-transform duration-700"
-              />
-            </div>
+  {/* Main Image Display */}
+  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden aspect-square flex items-center justify-center p-8 relative group">
+    <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+      <Tag size={12} /> NEW ARRIVAL
+    </div>
+    <img
+      src={[product.image1, product.image2, product.image3].filter(Boolean)[selectedImage] || product.image1}
+      alt={product.name}
+      className="max-w-[90%] max-h-[90%] object-contain group-hover:scale-105 transition-transform duration-700"
+    />
+  </div>
+
+  {/* Thumbnail Images */}
+  {[product.image1, product.image2, product.image3].filter(Boolean).length > 1 && (
+    <div className="grid grid-cols-3 gap-3">
+      {[product.image1, product.image2, product.image3].filter(Boolean).map((img, idx) => (
+        <button
+          key={idx}
+          onClick={() => setSelectedImage(idx)}
+          className={`bg-white rounded-xl border-2 overflow-hidden aspect-square p-2 hover:border-blue-500 transition-all ${
+            selectedImage === idx ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200'
+          }`}
+        >
+          <img
+            src={img}
+            alt={`${product.name} view ${idx + 1}`}
+            className="w-full h-full object-contain"
+          />
+        </button>
+      ))}
+    </div>
+  )}
+
 
             {/* Professional Ad Banner */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -378,7 +397,9 @@ export function ProductDetailPage({ product, onClose, onClick, allProducts }) {
                     <p className="text-blue-100 text-sm mb-4">
                       Buy 2 or more items and get 15% off instantly
                     </p>
-                    <button className="bg-white text-blue-600 px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-sm flex items-center gap-2">
+                    <button
+                    onClick={onClose}
+                    className="bg-white text-blue-600 px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-sm flex items-center gap-2">
                       Shop Bundle <ChevronRight size={16} />
                     </button>
                   </div>
@@ -419,7 +440,7 @@ export function ProductDetailPage({ product, onClose, onClick, allProducts }) {
               </span>
             </div>
 
-           {/* Price Section */}
+{/* Price Section */}
 <div className="bg-slate-50 rounded-xl p-5 mb-6 border border-slate-200">
   <div className="flex items-baseline gap-3 mb-2">
     {btcPrice !== null ? (
@@ -437,6 +458,9 @@ export function ProductDetailPage({ product, onClose, onClick, allProducts }) {
     ) : (
       <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
     )}
+  </div>
+  <div className="text-slate-600 text-sm">
+    ≈ ${product.price} USD
   </div>
 </div>
 
@@ -539,7 +563,9 @@ export function ProductDetailPage({ product, onClose, onClick, allProducts }) {
                 </p>
               </div>
             </div>
-            <button className="bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-colors flex items-center gap-2">
+            <button
+          onClick={onClose}
+            className="bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-colors flex items-center gap-2">
               Explore Trends <ChevronRight size={18} />
             </button>
           </div>

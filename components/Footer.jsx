@@ -40,7 +40,7 @@ const Footer = () => {
             title: "CONTACT",
             links: [
                 { text: "+1-212-456-7890", path: '/', icon: MailIcon },
-                { text: "contact@example.com", path: '/', icon: PhoneIcon },
+                { text: "support@dmarketplace.ai", path: '/', icon: PhoneIcon },
                 { text: "794 Francisco, 94102", path: '/', icon: MapPinIcon }
             ]
         }
